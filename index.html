@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Runner 2077 - OS v18.5 UNIVERSAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root { --neon-green: #00ff00; --neon-blue: #00ffff; --neon-pink: #ff00ff; --dark-bg: #0d0d0d; --stamina-yellow: #ffff00; --mission-orange: #ff8800; }
+        body { font-family: 'Share Tech Mono', monospace; background-color: #000; color: var(--neon-green); margin: 0; padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh;}
+        #game-container { width: 100%; max-width: 500px; background-color: var(--dark-bg); border: 2px solid var(--neon-green); border-radius: 25px; padding: 25px; box-sizing: border-box; position: relative;}
+        .hidden { display: none !important; }
+        
+        /* AUTH TELA */
+        .auth-header { text-align:center; color:var(--neon-blue); font-size: 2.3em; margin-bottom: 20px; text-transform: uppercase; font-weight: bold;}
+        .auth-input { width: 100%; padding: 15px; background: #000; border: 1px solid var(--neon-blue); color: #fff; margin-bottom: 10px; font-family: inherit; box-sizing: border-box; border-radius: 5px; font-size: 1em; }
+        .m-btn { background: var(--neon-green); color: #000; border: none; width: 100%; padding: 15px; font-family: inherit; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 1.1em; text-transform: uppercase;}
+        .m-btn:hover { opacity: 0.8; }
+        .secondary-btn { background: none; border: 1px solid var(--neon-pink); color: var(--neon-pink); margin-top: 15px; font-size: 0.9em;}
+
+        /* UI PRINCIPAL */
+        .p-name { color: var(--neon-pink); font-size: 2.1em; font-weight: bold; }
+        .p-level-val { color: var(--neon-green); font-size: 3.5em; font-weight: bold; line-height: 0.8; }
+        .menu-btn { background: #1a1a1a; color: #fff; border: none; border-left: 5px solid var(--neon-blue); padding: 16px; display: flex; justify-content: space-between; font-family: inherit; width: 100%; margin-bottom: 8px; cursor: pointer; text-align: left; }
+        .status-box { display: flex; justify-content: space-between; margin: 15px 0; background: #111; padding: 12px; border-radius: 10px; border: 1px solid #222; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="login-screen">
+        <div class="auth-header">NEON RUNNER 2077</div>
+        <input type="text" id="log-name" class="auth-input" placeholder="NICKNAME (EX: STRIKER)">
+        <input type="password" id="log-pass" class="auth-input" placeholder="SENHA">
+        <button class="m-btn" onclick="login()">ESTABELECER CONEXÃO</button>
+        
+        <button class="m-btn secondary-btn" onclick="showRegister()">CRIAR NOVA IDENTIDADE NEURAL</button>
+    </div>
+
+    <div id="register-screen" class="hidden">
+        <div class="auth-header">NOVO AGENTE</div>
+        <input type="text" id="reg-name" class="auth-input" placeholder="ESCOLHA SEU NICKNAME">
+        <input type="password" id="reg-pass" class="auth-input" placeholder="DEFINA SUA SENHA">
+        <button class="m-btn" style="background:var(--neon-pink)" onclick="register()">GERAR CREDENCIAIS</button>
+        <button class="m-btn secondary-btn" style="border-color:var(--neon-blue); color:var(--neon-blue)" onclick="showLogin()">VOLTAR AO LOGIN</button>
+    </div>
+
+    <div id="main-menu" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items: flex-start;">
+            <div>
+                <div class="p-name" id="ui-name">---</div>
+                <div id="ui-equip" style="color:var(--neon-blue); font-size:0.75em;">EQUIP: ANALISANDO...</div>
+            </div>
+            <div style="text-align:right;"><span style="font-size:0.6em; color:var(--neon-blue)">NÍVEL</span><br><span class="p-level-val" id="p-lv">0</span></div>
+        </div>
+
+        <div class="status-box">
+            <span>💰 <span id="p-cr">0</span></span>
+            <span style="color:var(--neon-pink)">❤️ <span id="p-hp">0</span> HP</span>
+            <span style="color:var(--stamina-yellow)">⚡ <span id="p-st">0</span></span>
+        </div>
+
+        <button class="menu-btn" onclick="alert('Módulo de Missões em desenvolvimento...')">Contratos Ativos <span style="color:var(--mission-orange)">[MISSAO]</span></button>
+        <button class="menu-btn" onclick="alert('Caça a Glitches bloqueada para este setor.')">Bestiário de Glitch <span style="color:var(--neon-green)">[HUNT]</span></button>
+        <button class="menu-btn" onclick="alert('Mercado Negro Offline.')">Mercado Negro <span style="color:var(--neon-blue)">[SHOP]</span></button>
+        <button class="menu-btn" onclick="alert('Habilidades Neurais em carga...')">Neural Skills <span style="color:var(--neon-pink)">[SKILLS]</span></button>
+        <button class="menu-btn" onclick="alert('Inventário vazio.')">Inventário <span style="color:#888">[ITEMS]</span></button>
+        <button class="menu-btn" onclick="showRank()">Ranking Global <span style="color:#666">[RANK]</span></button>
+        
+        <button class="m-btn" style="background:#400; color:#fff; margin-top:15px;" onclick="location.reload()">TERMINATE SESSION</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCp-Vg-YkLQc9B2pk8i-fUoX5-WAtyoviY",
+      authDomain: "neonrunner-6ca46.firebaseapp.com",
+      databaseURL: "https://neonrunner-6ca46-default-rtdb.firebaseio.com",
+      projectId: "neonrunner-6ca46",
+      storageBucket: "neonrunner-6ca46.firebasestorage.app",
+      messagingSenderId: "711994836030",
+      appId: "1:711994836030:web:ebf218f0708fd600113d6f"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let player = {};
+
+    function showRegister() {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('register-screen').classList.remove('hidden');
+    }
+
+    function showLogin() {
+        document.getElementById('register-screen').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+    }
+
+    function login() {
+        const n = document.getElementById('log-name').value.toUpperCase();
+        const p = document.getElementById('log-pass').value;
+        if(!n || !p) return alert("Preencha todos os campos.");
+        db.ref('players/' + n).once('value', s => {
+            if(s.val() && s.val().password === p) {
+                player = s.val();
+                loadGame();
+            } else { alert("ACESSO NEGADO: Identidade não reconhecida."); }
+        });
+    }
+
+    function register() {
+        const n = document.getElementById('reg-name').value.toUpperCase();
+        const p = document.getElementById('reg-pass').value;
+        if(!n || !p) return alert("Preencha Nickname e Senha.");
+        
+        db.ref('players/' + n).once('value', s => {
+            if(s.val()) { alert("Nickname já está em uso."); }
+            else {
+                // Criar Novo Jogador (Nível 1 Padrão)
+                const newPlayer = {
+                    name: n, password: p, level: 1, credits: 100, hp: 100, stamina: 100, xp: 0, nextLevelXp: 100, equiped: "NADA", kills: 0
+                };
+                db.ref('players/' + n).set(newPlayer);
+                alert("AGENTE REGISTRADO. Faça login.");
+                showLogin();
+            }
+        });
+    }
+
+    function loadGame() {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('register-screen').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('ui-name').innerText = player.name;
+        document.getElementById('p-lv').innerText = player.level;
+        document.getElementById('p-cr').innerText = player.credits;
+        document.getElementById('p-hp').innerText = player.hp;
+        document.getElementById('p-st').innerText = player.stamina;
+        document.getElementById('ui-equip').innerText = "EQUIP: " + (player.equiped || "NADA");
+    }
+
+    function showRank() {
+        db.ref('players').orderByChild('level').limitToLast(5).once('value', s => {
+            let r = "TOP RUNNERS:\n";
+            s.forEach(c => { r += `${c.val().name}: NV ${c.val().level}\n`; });
+            alert(r);
+        });
+    }
+</script>
+</body>
+</html>
