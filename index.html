@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Runner 2077 - OS v18.2 COMPLETE</title>
+    <title>Neon Runner 2077 - OS v18.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -13,74 +13,52 @@
         body { font-family: 'Share Tech Mono', monospace; background-color: #000; color: var(--neon-green); margin: 0; padding: 10px; display: flex; justify-content: center; }
         #game-container { width: 100%; max-width: 500px; background-color: var(--dark-bg); border: 2px solid var(--neon-green); border-radius: 25px; padding: 25px; position: relative; min-height: 90vh; box-sizing: border-box; }
         .hidden { display: none !important; }
-        
-        /* HEADER */
-        .player-info { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .p-name { color: var(--neon-pink); font-size: 2.1em; font-weight: bold; }
         .p-level-val { color: var(--neon-green); font-size: 3.5em; font-weight: bold; line-height: 0.8; }
-        
-        /* BARS */
-        .bar-bg { width: 100%; height: 9px; background: #222; border-radius: 5px; margin-bottom: 3px; border: 1px solid #333; overflow: hidden; }
-        .xp-fill { height: 100%; background: var(--neon-blue); width: 0%; transition: 0.5s; }
-        .stamina-fill { height: 100%; background: var(--stamina-yellow); width: 0%; transition: 0.5s; }
-
-        /* BUTTONS */
-        .menu-btn { background: #1a1a1a; color: #fff; border: none; border-left: 5px solid var(--neon-blue); padding: 15px; display: flex; justify-content: space-between; font-family: inherit; width: 100%; margin-bottom: 8px; cursor: pointer; font-size: 0.9em; }
-        .menu-btn:hover { background: #333; }
+        .menu-btn { background: #1a1a1a; color: #fff; border: none; border-left: 5px solid var(--neon-blue); padding: 18px; display: flex; justify-content: space-between; font-family: inherit; width: 100%; margin-bottom: 8px; cursor: pointer; }
         .m-btn { background: var(--mission-orange); color: #000; border: none; width: 100%; padding: 12px; font-family: inherit; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 10px; }
-        
-        /* AUTH TELA */
-        .auth-input { width: 100%; padding: 15px; background: #000; border: 1px solid var(--neon-blue); color: #fff; margin-bottom: 10px; font-family: inherit; box-sizing: border-box; border-radius: 5px; }
-
-        /* MODAL */
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: none; padding: 20px; box-sizing: border-box; }
-        .modal-content { border: 1px solid var(--neon-green); padding: 20px; background: #000; border-radius: 10px; height: 80vh; overflow-y: auto; }
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; display: none; padding: 20px; box-sizing: border-box; }
+        .modal-content { border: 1px solid var(--neon-green); padding: 20px; background: #000; border-radius: 10px; height: 70vh; }
     </style>
 </head>
 <body>
-
 <div id="game-container">
     <div id="login-screen">
         <h2 style="text-align:center; color:var(--neon-blue)">NETWORK LOGIN</h2>
-        <input type="text" id="log-name" class="auth-input" placeholder="NICKNAME (EX: EMERSON)">
-        <input type="password" id="log-pass" class="auth-input" placeholder="SENHA">
-        <button class="m-btn" style="background:var(--neon-green)" onclick="login()">SYNC NEURAL LINK</button>
+        <input type="text" id="log-name" style="width:100%; padding:15px; margin-bottom:10px;" placeholder="NICKNAME">
+        <input type="password" id="log-pass" style="width:100%; padding:15px; margin-bottom:10px;" placeholder="SENHA">
+        <button class="m-btn" style="background:var(--neon-green); width:100%" onclick="login()">SYNC NEURAL LINK</button>
     </div>
 
     <div id="main-menu" class="hidden">
-        <div class="player-info">
+        <div style="display:flex; justify-content:space-between;">
             <div>
                 <div class="p-name" id="ui-name">---</div>
-                <div id="ui-equip" style="color:var(--neon-blue); font-size:0.7em; margin-bottom:5px;">EQUIP: ---</div>
-                <div style="width: 180px;">
-                    <div class="bar-bg"><div id="p-xp" class="xp-fill"></div></div>
-                    <div class="bar-bg"><div id="p-stamina" class="stamina-fill"></div></div>
-                </div>
+                <div id="ui-equip" style="color:var(--neon-blue); font-size:0.7em;">EQUIP: NADA</div>
             </div>
-            <div class="p-level-box"><span style="font-size:0.6em; color:var(--neon-blue)">NÍVEL</span><br><span class="p-level-val" id="p-lv">0</span></div>
+            <div style="text-align:right;"><span style="font-size:0.6em; color:var(--neon-blue)">NÍVEL</span><br><span class="p-level-val" id="p-lv">0</span></div>
         </div>
 
         <div style="display:flex; justify-content:space-between; margin:15px 0; background:#111; padding:10px; border-radius:10px;">
             <span>💰 <span id="p-cr">0</span></span>
             <span style="color:var(--neon-pink)">❤️ <span id="p-hp">0</span> HP</span>
-            <span style="color:var(--stamina-yellow)">⚡ <span id="p-st-text">0</span></span>
+            <span style="color:var(--stamina-yellow)">⚡ <span id="p-st">0</span></span>
         </div>
 
-        <button class="menu-btn" onclick="openModule('missao')">Contratos Ativos <span style="color:var(--mission-orange)">[MISSAO]</span></button>
-        <button class="menu-btn" onclick="openModule('bestiario')">Bestiário de Glitch <span style="color:var(--neon-green)">[HUNT]</span></button>
-        <button class="menu-btn" onclick="openModule('loja')">Mercado Negro <span style="color:var(--neon-blue)">[SHOP]</span></button>
-        <button class="menu-btn" onclick="openModule('habilidades')">Neural Skills <span style="color:var(--neon-pink)">[SKILLS]</span></button>
-        <button class="menu-btn" onclick="openModule('inventario')">Inventário <span style="color:#888">[ITEMS]</span></button>
+        <button class="menu-btn" onclick="openMod('missao')">Contratos Ativos <span style="color:var(--mission-orange)">[MISSAO]</span></button>
+        <button class="menu-btn" onclick="openMod('bestiario')">Bestiário de Glitch <span style="color:var(--neon-green)">[HUNT]</span></button>
+        <button class="menu-btn" onclick="openMod('loja')">Mercado Negro <span style="color:var(--neon-blue)">[SHOP]</span></button>
+        <button class="menu-btn" onclick="openMod('skills')">Neural Skills <span style="color:var(--neon-pink)">[SKILLS]</span></button>
+        <button class="menu-btn" onclick="openMod('items')">Inventário <span style="color:#888">[ITEMS]</span></button>
         <button class="menu-btn" onclick="showRank()">Ranking Global <span style="color:#666">[RANK]</span></button>
-        
-        <button class="m-btn" style="background:#400; color:#fff;" onclick="location.reload()">TERMINATE SESSION</button>
+        <button class="m-btn" style="background:#400; color:#fff; width:100%" onclick="location.reload()">TERMINATE SESSION</button>
     </div>
 </div>
 
 <div id="modal-overlay">
     <div class="modal-content">
         <div id="modal-body"></div>
-        <button class="m-btn" onclick="closeModule()">VOLTAR AO MENU</button>
+        <button class="m-btn" style="width:100%" onclick="document.getElementById('modal-overlay').style.display='none'">FECHAR</button>
     </div>
 </div>
 
@@ -107,52 +85,41 @@
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-menu').classList.remove('hidden');
                 updateUI();
-            } else { alert("ACESSO NEGADO."); }
+            } else { alert("FALHA NA SINCRONIZAÇÃO."); }
         });
     }
 
     function updateUI() {
-        document.getElementById('ui-name').textContent = player.name;
-        document.getElementById('ui-equip').textContent = "EQUIP: " + (player.equiped || "NADA");
-        document.getElementById('p-lv').textContent = player.level;
-        document.getElementById('p-cr').textContent = player.credits;
-        document.getElementById('p-hp').textContent = player.hp;
-        document.getElementById('p-st-text').textContent = player.stamina;
-        document.getElementById('p-stamina').style.width = player.stamina + "%";
-        document.getElementById('p-xp').style.width = (player.xp / player.nextLevelXp * 100) + "%";
+        document.getElementById('ui-name').innerText = player.name;
+        document.getElementById('p-lv').innerText = player.level;
+        document.getElementById('p-cr').innerText = player.credits;
+        document.getElementById('p-hp').innerText = player.hp;
+        document.getElementById('p-st').innerText = player.stamina;
+        document.getElementById('ui-equip').innerText = "EQUIP: " + (player.equiped || "NADA");
     }
 
-    function openModule(type) {
-        let content = "";
-        if(type === 'bestiario') content = "<h3>BESTIÁRIO</h3><p>Glitches Detectados: " + (player.kills || 0) + "</p><button class='m-btn' onclick='hunt()'>CAÇAR GLITCH (-15⚡)</button>";
-        if(type === 'loja') content = "<h3>MERCADO NEGRO</h3><p>Katana Neon: 500 CR</p><button class='m-btn' onclick='buy(\"Katana Neon\", 500)'>COMPRAR</button>";
-        
-        document.getElementById('modal-body').innerHTML = content;
+    function openMod(type) {
+        let b = document.getElementById('modal-body');
         document.getElementById('modal-overlay').style.display = 'block';
+        if(type === 'bestiario') b.innerHTML = "<h3>BESTIÁRIO</h3><p>Abates: " + (player.kills || 0) + "</p><button class='m-btn' onclick='hunt()'>CAÇAR GLITCH (-10⚡)</button>";
+        else if(type === 'loja') b.innerHTML = "<h3>MERCADO</h3><p>Katana Neon: 500 CR</p><button class='m-btn' onclick='buy()'>COMPRAR</button>";
+        else b.innerHTML = "<h3>MÓDULO EM MANUTENÇÃO</h3><p>Acesso restrito ao nível 10+.</p>";
     }
 
     function hunt() {
-        if(player.stamina >= 15) {
-            player.stamina -= 15; player.xp += 30; player.kills = (player.kills || 0) + 1;
-            save(); closeModule();
-        } else { alert("STAMINA INSUFICIENTE"); }
-    }
-
-    function buy(item, price) {
-        if(player.credits >= price) {
-            player.credits -= price; player.equiped = item;
-            save(); closeModule();
-        } else { alert("CRÉDITOS INSUFICIENTES"); }
+        if(player.stamina >= 10) {
+            player.stamina -= 10; player.xp += 20; player.kills = (player.kills || 0) + 1;
+            save();
+        }
     }
 
     function save() { db.ref('players/' + player.name).update(player); updateUI(); }
-    function closeModule() { document.getElementById('modal-overlay').style.display = 'none'; }
-    
+
     function showRank() {
         db.ref('players').orderByChild('level').limitToLast(5).once('value', s => {
-            let rank = "TOP RUNNERS:\n";
-            s.forEach(c => { rank += `${c.val().name} - NV ${c.val().level}\n`; });
-            alert(rank);
+            let r = "RANKING:\n";
+            s.forEach(child => { r += `${child.val().name}: NV ${child.val().level}\n`; });
+            alert(r);
         });
     }
 </script>
