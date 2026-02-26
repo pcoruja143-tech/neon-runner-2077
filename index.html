@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Runner 2077 - OS v18.0</title>
+    <title>Neon Runner 2077 - OS v18.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -11,62 +11,55 @@
     <style>
         :root { --neon-green: #00ff00; --neon-blue: #00ffff; --neon-pink: #ff00ff; --dark-bg: #0d0d0d; --stamina-yellow: #ffff00; --mission-orange: #ff8800; }
         body { font-family: 'Share Tech Mono', monospace; background-color: #000; color: var(--neon-green); margin: 0; padding: 10px; display: flex; justify-content: center; }
-        
-        #game-container { width: 100%; max-width: 500px; background-color: var(--dark-bg); border: 2px solid var(--neon-green); border-radius: 25px; padding: 25px; position: relative; min-height: 90vh; box-sizing: border-box; }
-        .system-badge { background: #000; border: 2px solid var(--neon-green); border-radius: 20px; color: var(--neon-green); padding: 5px 30px; font-weight: bold; font-size: 0.8em; margin: -40px auto 15px; width: fit-content; display: block; text-align: center; }
-
-        /* HEADER FIXO */
-        .player-info { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        #game-container { width: 100%; max-width: 500px; background-color: var(--dark-bg); border: 2px solid var(--neon-green); border-radius: 25px; padding: 25px; position: relative; min-height: 500px; box-sizing: border-box; }
+        .hidden { display: none !important; }
+        .auth-input { width: 100%; padding: 15px; background: #000; border: 1px solid var(--neon-blue); color: #fff; margin-bottom: 10px; font-family: inherit; box-sizing: border-box; }
+        .m-btn { background: var(--mission-orange); color: #000; border: none; width: 100%; padding: 12px; font-family: inherit; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 10px; }
+        /* Estilos de Interface */
+        .player-info { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .p-name { color: var(--neon-pink); font-size: 2.1em; font-weight: bold; }
-        .p-level-box { text-align: right; }
         .p-level-val { color: var(--neon-green); font-size: 3.5em; font-weight: bold; line-height: 0.8; }
-
-        /* BARS */
-        .bar-bg { width: 100%; height: 9px; background: #222; border-radius: 5px; overflow: hidden; margin-bottom: 3px; border: 1px solid #333; }
+        .bar-bg { width: 100%; height: 9px; background: #222; border-radius: 5px; margin-bottom: 3px; border: 1px solid #333; overflow: hidden; }
         .xp-fill { height: 100%; background: var(--neon-blue); width: 0%; transition: 0.5s; }
         .stamina-fill { height: 100%; background: var(--stamina-yellow); width: 0%; transition: 0.5s; }
-
-        /* MISSION BOX */
-        #mission-box { border: 2px dashed var(--mission-orange); border-radius: 10px; padding: 15px; margin: 15px 0; background: rgba(255,136,0,0.05); }
-        .m-header { display: flex; justify-content: space-between; color: var(--mission-orange); font-weight: bold; font-size: 0.85em; }
-        .m-btn { background: var(--mission-orange); color: #000; border: none; width: 100%; padding: 12px; font-family: inherit; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 10px; }
-
-        .status-row { display: flex; justify-content: space-between; background: #000; padding: 12px; border-radius: 10px; margin: 15px 0; font-size: 1em; }
         .menu-btn { background: #1a1a1a; color: #fff; border: none; border-left: 5px solid var(--neon-blue); padding: 18px; display: flex; justify-content: space-between; font-family: inherit; width: 100%; margin-bottom: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 <div id="game-container">
-    <div class="system-badge">ONLINE</div>
-    <div id="main-menu">
+    <div id="login-screen">
+        <h2 style="text-align:center; color:var(--neon-blue)">CLOUD LOGIN</h2>
+        <input type="text" id="log-name" class="auth-input" placeholder="NICKNAME (EX: EMERSON)">
+        <input type="password" id="log-pass" class="auth-input" placeholder="SENHA">
+        <button class="m-btn" style="background:var(--neon-green)" onclick="login()">ACESSAR TERMINAL</button>
+    </div>
+
+    <div id="main-menu" class="hidden">
         <div class="player-info">
             <div>
-                <div class="p-name">EMERSON</div>
+                <div class="p-name" id="ui-name">---</div>
                 <div style="color:var(--neon-blue); font-size:0.7em; margin-bottom:5px;">EQUIP: KATANA NEON</div>
                 <div style="width: 200px;">
                     <div class="bar-bg"><div id="p-xp" class="xp-fill"></div></div>
                     <div class="bar-bg"><div id="p-stamina" class="stamina-fill"></div></div>
                 </div>
             </div>
-            <div class="p-level-box"><span style="font-size:0.6em; color:var(--neon-blue)">NÍVEL</span><br><span class="p-level-val" id="p-lv">8</span></div>
+            <div class="p-level-box"><span style="font-size:0.6em; color:var(--neon-blue)">NÍVEL</span><br><span class="p-level-val" id="p-lv">1</span></div>
         </div>
-        <div id="mission-box">
-            <div class="m-header"><span>● MISSÃO DISPONÍVEL</span><span id="m-timer">0:29</span></div>
-            <div style="font-size:0.85em; margin-top:5px;">Infiltrar em servidor fantasma<br><span style="color:var(--neon-green)">80XP | 150CR</span><br><small>Custo: 28⚡</small></div>
-            <button class="m-btn" onclick="completeMission()">EXECUTAR CONTRATO</button>
+        
+        <div class="status-row" style="display:flex; justify-content:space-between; margin:15px 0;">
+            <span>💰 <span id="p-cr">0</span></span>
+            <span style="color:var(--neon-pink)">❤️ <span id="p-hp">100</span> HP</span>
+            <span style="color:var(--stamina-yellow)">⚡ <span id="p-st-text">100</span></span>
         </div>
-        <div class="status-row">
-            <span>💰 <span id="p-cr">920</span></span>
-            <span style="color:var(--neon-pink)">❤️ <span id="p-hp">86</span> HP</span>
-            <span style="color:var(--stamina-yellow)">⚡ <span id="p-st-text">20</span></span>
-        </div>
+
         <button class="menu-btn" onclick="executeJob()">Trabalho Rápido (-10⚡) <span style="color:#666">[EXE]</span></button>
         <button class="menu-btn" onclick="showRank()">Ranking Global <span style="color:#666">[RANK]</span></button>
         <button class="m-btn" style="background:#400; color:#fff;" onclick="location.reload()">LOGOUT</button>
     </div>
 </div>
+
 <script>
-    // Configurações do seu Firebase enviadas anteriormente
     const firebaseConfig = {
       apiKey: "AIzaSyCp-Vg-YkLQc9B2pk8i-fUoX5-WAtyoviY",
       authDomain: "neonrunner-6ca46.firebaseapp.com",
@@ -78,7 +71,47 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    // A lógica de login e salvamento permanece a mesma para garantir seus dados do Nível 8
+    let player = {};
+
+    function login() {
+        const n = document.getElementById('log-name').value.toUpperCase();
+        const p = document.getElementById('log-pass').value;
+        db.ref('players/' + n).once('value', s => {
+            if(s.val() && s.val().password === p) {
+                player = s.val();
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-menu').classList.remove('hidden');
+                updateUI();
+            } else { alert("ACESSO NEGADO: Verifique Nick e Senha."); }
+        });
+    }
+
+    function executeJob() {
+        if(player.stamina >= 10) {
+            player.stamina -= 10; player.credits += 20; player.xp += 15;
+            save();
+        } else { alert("SEM STAMINA!"); }
+    }
+
+    function save() { db.ref('players/' + player.name).update(player); updateUI(); }
+
+    function updateUI() {
+        document.getElementById('ui-name').textContent = player.name;
+        document.getElementById('p-lv').textContent = player.level;
+        document.getElementById('p-cr').textContent = player.credits;
+        document.getElementById('p-hp').textContent = player.hp;
+        document.getElementById('p-st-text').textContent = player.stamina;
+        document.getElementById('p-stamina').style.width = player.stamina + "%";
+        document.getElementById('p-xp').style.width = (player.xp / player.nextLevelXp * 100) + "%";
+    }
+
+    function showRank() {
+        db.ref('players').orderByChild('level').limitToLast(5).once('value', s => {
+            let msg = "RANKING GLOBAL:\n";
+            s.forEach(c => { msg += `${c.val().name}: NV ${c.val().level}\n`; });
+            alert(msg);
+        });
+    }
 </script>
 </body>
 </html>
